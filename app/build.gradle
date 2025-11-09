@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.googleServices)
     alias(libs.plugins.firebaseCrashlytics)
     alias(libs.plugins.hiltAndroid)
+     id 'jacoco'
 }
 
 android {
@@ -79,6 +80,32 @@ android {
             enable true
         }
     }
+}
+
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports for the Debug build"
+
+    reports {
+        xml.required = true
+        html.required = true
+    }
+
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Binding.class', '**/databinding/*', '**/di/*', '**/utils/*']
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/javac/debug/classes", excludes: fileFilter)
+    
+    classDirectories.from = files([debugTree])
+
+    sourceDirectories.from = files([
+        "${project.projectDir}/src/main/java"
+    ])
+
+    executionData.from = files("${buildDir}/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
 }
 
 dependencies {
