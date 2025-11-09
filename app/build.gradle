@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.googleServices)
     alias(libs.plugins.firebaseCrashlytics)
     alias(libs.plugins.hiltAndroid)
+    id 'jacoco' // ADDED: JaCoCo Plugin
 }
 
 android {
@@ -80,6 +81,47 @@ android {
         }
     }
 }
+
+//Added: JaCoCo Tool Version Configuration
+
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+// ADDED: Task to generate the HTML Report
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports for the Debug build"
+
+    reports {
+        xml.required = true
+        html.required = true
+    }
+
+    // Standard filter for auto-generated files that shouldn't be included in coverage
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Binding.class', '**/databinding/*', '**/di/*', '**/utils/*']
+
+    // Path to the compiled Java and Kotlin classes for the debug build
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/javac/debug/classes", excludes: fileFilter)
+    
+    // NOTE: If you are using Kotlin alongside Java, you might need to adjust the path if Kotlin classes are compiled separately.
+    // For a Java-only project, this should suffice.
+    
+    classDirectories.from = files([debugTree])
+
+    // Source files for displaying code in the HTML report
+    sourceDirectories.from = files([
+        "${project.projectDir}/src/main/java"
+    ])
+
+    // Execution data generated when unit tests are run
+    executionData.from = files("${buildDir}/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+
+    // The execution data path may vary slightly depending on your Gradle version.
+    // If the path above fails, try: "${buildDir}/jacoco/testDebugUnitTest.exec"
+}
+
+
 
 dependencies {
 
